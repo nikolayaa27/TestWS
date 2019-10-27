@@ -1,5 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,21 +17,16 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user_t")
+@Table(name = "city_t")
 @Getter
 @Setter
-public class User {
+public class City {
 
     @Id
-    @Column(name = "user_id")
-    private String userLogin;
+    @Column(name = "city_name")
+    private String cityName;
 
-    @Column(name = "user_password")
-    private String userPassword;
-
-    @Column(name = "user_admin")
-    private boolean userAdminFlag;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonBackReference
+    @OneToMany(mappedBy = "city", cascade = CascadeType.PERSIST)
     private Set<WeatherData> weatherDataSet;
 }

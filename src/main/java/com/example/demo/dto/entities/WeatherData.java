@@ -1,5 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,23 +29,20 @@ public class WeatherData {
     private int weatherDataId;
 
     @Column(name = "weather_data_date")
-    private LocalDateTime weatherDataDate;
+    private LocalDate weatherDataDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "city_name")
     private City city;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "weather_condition_id")
     private WeatherConditions weatherConditions;
-
-    @Override
-    public String toString() {
-        return "weather_data_id=" + weatherDataId + " weather_data_date=" + weatherDataDate + " city_name=" + city.getCityName() + " user_id=" + user.getUserLogin() + " weatherConditions=" + weatherConditions.getHumidity() + " " + weatherConditions.getTemperature();
-    }
 }
-

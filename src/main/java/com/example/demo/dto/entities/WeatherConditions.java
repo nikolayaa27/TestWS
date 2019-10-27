@@ -1,5 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,6 +34,7 @@ public class WeatherConditions {
     @Column(name = "weather_condition_humidity")
     private int humidity;
 
-    @OneToMany(mappedBy = "weatherConditions", cascade = CascadeType.ALL)
+    @JsonBackReference
+    @OneToMany(mappedBy = "weatherConditions", cascade = CascadeType.PERSIST)
     private Set<WeatherData> weatherDataSet;
 }

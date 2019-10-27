@@ -1,18 +1,25 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dao.CityDataRepository;
+import com.example.demo.dao.ConditionsDataRepository;
+import com.example.demo.dao.UserDataRepository;
 import com.example.demo.dao.WeatherDataRepository;
-import com.example.demo.dto.City;
-import com.example.demo.dto.User;
-import com.example.demo.dto.WeatherConditions;
-import com.example.demo.dto.WeatherData;
+import com.example.demo.dto.RequestData;
+import com.example.demo.dto.SaveData;
+import com.example.demo.dto.entities.City;
+import com.example.demo.dto.entities.User;
+import com.example.demo.dto.entities.WeatherConditions;
+import com.example.demo.dto.entities.WeatherData;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
+
 
 @RestController
 public class Controller {
@@ -21,60 +28,74 @@ public class Controller {
     @Autowired
     WeatherDataRepository weatherDataRepository;
 
-    @GetMapping("/api/city/{city}/date/{date}")
-    public String retrieveData() {
+    @Autowired
+    UserDataRepository userDataRepository;
+
+    @Autowired
+    CityDataRepository cityDataRepository;
+
+    @Autowired
+    ConditionsDataRepository conditionsDataRepository;
+
+    @GetMapping("/api/retrieve")
+    public ResponseEntity retrieveData(@RequestParam String req) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        RequestData  requestData;
+        try {
+            objectMapper.registerModule(new JavaTimeModule());
+            requestData = objectMapper.readValue(req, RequestData.class);
+        } catch (JsonProcessingException e) {
+            return new ResponseEntity("Bad Input Data", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userDataRepository.findByUserLoginAndUserPassword(requestData.getUser(), requestData.getPass());
+        if (user == null) { return new ResponseEntity("Check your user credentials", HttpStatus.UNAUTHORIZED); }
+        if (!user.isUserAdminFlag()) {
+            return new ResponseEntity("Sorry but you suppose to be an admin", HttpStatus.UNAUTHORIZED);
+        }
+
         List<WeatherData> weatherData;
+        weatherData = weatherDataRepository.fetchWeatherData(requestData.getCity(), requestData.getDate());
 
-        LocalDateTime dateTime = LocalDateTime.parse("2019-10-24T11:19:47");
-        weatherData = weatherDataRepository.fetchWeatherData("Moscow", dateTime);
-
-        return weatherData.get(0).toString();
+        return weatherData.size() > 0 ? new ResponseEntity(weatherData, HttpStatus.OK) : new ResponseEntity("Data not found", HttpStatus.OK);
     }
 
-    @GetMapping("/api/save")
-    public void saveEmployee() {
-        City city = new City();
-        city.setCityName("Moscow");
+    @PostMapping("/api/save")
+    public ResponseEntity saveWeather(@RequestBody SaveData saveData) {
 
-        City city1 = new City();
-        city1.setCityName("Yekaterinburg");
 
+        User user = userDataRepository.findByUserLoginAndUserPassword(saveData.getUser(), saveData.getPass());
+        if (user == null) { return new ResponseEntity("Check your user credentials", HttpStatus.UNAUTHORIZED); }
+        if (!user.isUserAdminFlag()) {
+            return new ResponseEntity("Sorry but you suppose to be an admin", HttpStatus.UNAUTHORIZED);
+        }
+
+        // save or update data to prevent PK constraint violation
+        City city = cityDataRepository.findByCityName(saveData.getCity());
+        if (city == null) {
+            city = new City();
+            city.setCityName(saveData.getCity());
+        }
+
+
+
+
+        // this data is always new
         WeatherConditions weatherConditions = new WeatherConditions();
-        weatherConditions.setTemperature(28);
-        weatherConditions.setHumidity(70);
+        weatherConditions.setTemperature(saveData.getConditions().getTemperature());
+        weatherConditions.setHumidity(saveData.getConditions().getHumidity());
 
-        WeatherConditions weatherConditions1 = new WeatherConditions();
-        weatherConditions1.setTemperature(36);
-        weatherConditions1.setHumidity(40);
+        // prepare the full Entity
+        WeatherData weatherData = new WeatherData();
+        weatherData.setWeatherDataDate(LocalDate.now());
+        weatherData.setCity(city);
+        weatherData.setWeatherConditions(weatherConditions);
+        weatherData.setUser(user);
 
-        User user0 = new User();
-        user0.setUserLogin("nik");
-        user0.setUserPassword("pass");
-        user0.setUserAdminFlag(true);
+        weatherDataRepository.save(weatherData);
 
-        User user1 = new User();
-        user1.setUserLogin("zel");
-        user1.setUserPassword("pass");
-        user1.setUserAdminFlag(false);
-
-        WeatherData weatherData0 = new WeatherData();
-        weatherData0.setWeatherDataDate(LocalDateTime.now());
-        weatherData0.setCity(city);
-        weatherData0.setWeatherConditions(weatherConditions);
-        weatherData0.setUser(user0);
-
-        WeatherData weatherData1 = new WeatherData();
-        weatherData1.setWeatherDataDate(LocalDateTime.now());
-        weatherData1.setCity(city1);
-        weatherData1.setWeatherConditions(weatherConditions1);
-        weatherData1.setUser(user1);
-
-//        Set<WeatherData> weatherDataSet = new HashSet();
-//        weatherDataSet.add(weatherData0);
-//        weatherDataSet.add(weatherData1);
-
-        weatherDataRepository.save(weatherData0);
-        weatherDataRepository.save(weatherData1);
+        return new ResponseEntity("Data Saved!", HttpStatus.OK);
     }
+
 
 }
