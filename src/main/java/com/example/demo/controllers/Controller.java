@@ -107,6 +107,7 @@ public class Controller {
         customer.setUserPassword("pass");
         customer.setUserAdminFlag(false);
 
+
         userDataRepository.save(customer);
         return new ResponseEntity("Two users created - admin and customer", HttpStatus.OK);
     }
