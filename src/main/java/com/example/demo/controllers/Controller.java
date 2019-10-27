@@ -63,7 +63,6 @@ public class Controller {
     @PostMapping("/api/save")
     public ResponseEntity saveWeather(@RequestBody SaveData saveData) {
 
-
         User user = userDataRepository.findByUserLoginAndUserPassword(saveData.getUser(), saveData.getPass());
         if (user == null) { return new ResponseEntity("Check your user credentials", HttpStatus.UNAUTHORIZED); }
         if (!user.isUserAdminFlag()) {
@@ -76,9 +75,6 @@ public class Controller {
             city = new City();
             city.setCityName(saveData.getCity());
         }
-
-
-
 
         // this data is always new
         WeatherConditions weatherConditions = new WeatherConditions();
@@ -97,5 +93,21 @@ public class Controller {
         return new ResponseEntity("Data Saved!", HttpStatus.OK);
     }
 
+    @PostMapping("/api/create-users")
+    public ResponseEntity createAdmin() {
+        User admin = new User();
+        admin.setUserLogin("admin");
+        admin.setUserPassword("pass");
+        admin.setUserAdminFlag(true);
 
+        userDataRepository.save(admin);
+
+        User customer = new User();
+        customer.setUserLogin("customer");
+        customer.setUserPassword("pass");
+        customer.setUserAdminFlag(false);
+
+        userDataRepository.save(customer);
+        return new ResponseEntity("Two users created - admin and customer", HttpStatus.OK);
+    }
 }
