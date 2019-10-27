@@ -1,11 +1,11 @@
-# Как исользовать пограмму
+# Как использовать программу
 ## Клонирование репозитория
 ```shell
 cd $HOME
 git clone ...
 cd $HOME/
 ```
-## Установка прораммы и ее зависимостей
+## Установка программы и ее зависимостей
 ```shell
 mvn clean install
 java -jar ./target/demo-0.0.1-SNAPSHOT.jar
@@ -14,7 +14,7 @@ java -jar ./target/demo-0.0.1-SNAPSHOT.jar
 ```shell
 curl -X POST http://localhost:7070/api/create-users 
 ```
-## Внесение данных о погоде по говороду на определенную дату
+## Внесение данных о погоде по городу на определенную дату
 ```shell
 curl -X POST http://localhost:7070/api/save \
   -H 'Content-Type: application/json' \
@@ -29,7 +29,7 @@ curl -X POST http://localhost:7070/api/save \
     }
 }'
 ```
-## Получение донных о погоде на определенную дату
+## Получение данных о погоде на определенную дату
 ```shell
 
 ```
